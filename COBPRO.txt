@@ -1,0 +1,465 @@
+000100 IDENTIFICATION DIVISION.                                         00010003
+000200 PROGRAM-ID. COBPRO.                                              00020003
+000300 AUTHOR. TANUSHA                                                  00030003
+000400 DATE-WRITTEN. MAR-30-2024.                                       00040003
+000500 DATE-COMPILED. MAR-30-2024.                                      00050003
+000600***************************************************************** 00060003
+000700*                   PROJECT-DESCRIPTION                         * 00070003
+000800***************************************************************** 00080003
+000900*AUTHOR       : RITIK BHATODRA , VISHAL S K ,                   * 00090003
+001000*               MADHU ANUGU , MARAGADA VENKATESH ,              * 00100003
+001100*               SRIDEEP BANERJEE , TANUSHA KUTAKULA             * 00110003
+001200*                                                               * 00120003
+001300*DATE-WRITTEN : MAR-30-2024                                     * 00130003
+001400*                                                               * 00140003
+001500*OBJECTIVE    : SEPERATING APPLICANT DETAILS IN CSV REPORT      * 00150003
+001600*               FILE AND DEFAULTER FILE BASED UPON DIFFERENCE   * 00160003
+001700*               BETWEEN REPYAMENT DATE AND NEXT REPAYMENT DATE  * 00170003
+001800*                                                               * 00180003
+001900*INPUT        : PS FILE(1) - PAYMENT DETAILS FILE               * 00190003
+002000*               TABLES(2)  - LOAN_TABLE , APPLICANT_TABLE       * 00200003
+002100*                                                               * 00210003
+002200*OUTPUT       : PS FILES(2)- CSV REPORT FILE , DEFAULTERS FILE  * 00220003
+002300*                                                               * 00230003
+002400***************************************************************** 00240003
+002500 ENVIRONMENT DIVISION.                                            00250003
+002600 INPUT-OUTPUT SECTION.                                            00260003
+002700 FILE-CONTROL.                                                    00270003
+002800     SELECT INPPAYM ASSIGN TO DDPAY                               00280003
+002900     ORGANIZATION IS SEQUENTIAL                                   00290003
+003000     ACCESS MODE IS SEQUENTIAL                                    00300003
+003100     FILE STATUS IS FS-INPPAYM.                                   00310003
+003200***************************************************************   00320003
+003300     SELECT OUTREPO ASSIGN TO DDREPO                              00330003
+003400     ORGANIZATION IS SEQUENTIAL                                   00340003
+003500     ACCESS MODE IS SEQUENTIAL                                    00350003
+003600     FILE STATUS IS FS-OUTREPO.                                   00360003
+003700***************************************************************   00370003
+003800     SELECT OUTDEFA ASSIGN TO DDDEFA                              00380003
+003900     ORGANIZATION IS SEQUENTIAL                                   00390003
+004000     ACCESS MODE IS SEQUENTIAL                                    00400003
+004100     FILE STATUS IS FS-OUTDEFA.                                   00410003
+004200***************************************************************   00420003
+004300 DATA DIVISION.                                                   00430003
+004400 FILE SECTION.                                                    00440003
+004500************INPUT PAYMENT DETAILS FILE STRUCTURE***************   00450003
+004600 FD INPPAYM                                                       00460003
+004700     RECORD CONTAINS 80 CHARACTERS                                00470003
+004800     BLOCK CONTAINS 800 CHARACTERS                                00480003
+004900     RECORDING MODE IS F.                                         00490003
+005000 01 FS-PAYM.                                                      00500003
+005100     05 PY-COLLECTION PIC X(10).                                  00510003
+005200     05 FILLER        PIC X.                                      00520003
+005300     05 PY-APPLICANT-ID PIC X(10).                                00530003
+005400     05 FILLER PIC X.                                             00540003
+005500     05 PY-LOAN-ID PIC X(2).                                      00550003
+005600     05 FILLER PIC X.                                             00560003
+005700     05 PY-AMOUNT-PAID PIC 9(7).9(2).                             00570003
+005800     05 FILLER PIC X.                                             00580003
+005900     05 PY-AMOUNT-PAID-DATE PIC X(10).                            00590003
+006000     05 FILLER PIC X(34).                                         00600003
+006100*************OUTPUT REPORT FILE STRUCTURE************************ 00610003
+006200 FD OUTREPO                                                       00620003
+006300     RECORD CONTAINS 240 CHARACTERS                               00630003
+006400     BLOCK CONTAINS 2400 CHARACTERS                               00640003
+006500     RECORDING MODE IS F.                                         00650003
+006600 01 FS-REPO.                                                      00660003
+006700     05 RE-REPORT-CREATION-DATE PIC X(10).                        00670003
+006800     05 F1 PIC X.                                                 00680003
+006900     05 RE-APPLICANT-ID PIC X(10).                                00690003
+007000     05 F2 PIC X.                                                 00700003
+007100     05 RE-APPLICANT-NAME PIC X(32).                              00710003
+007200     05 F3 PIC X.                                                 00720003
+007300     05 RE-APPLICANT-ADDRESS PIC X(80).                           00730003
+007400     05 F4 PIC X.                                                 00740003
+007500     05 RE-CONTACT-NO PIC X(10).                                  00750003
+007600     05 F5 PIC X.                                                 00760003
+007700     05 RE-LOAN-ID PIC X(2).                                      00770003
+007800     05 F6 PIC X.                                                 00780003
+007900     05 RE-LOAN-TYPE PIC X(10).                                   00790003
+008000     05 F7 PIC X.                                                 00800003
+008100     05 RE-BALANCE-AMOUNT PIC 9(7).9(2).                          00810003
+008200     05 F8 PIC X.                                                 00820003
+008300     05 RE-DUE-DATE PIC X(10).                                    00830003
+008400     05 F9 PIC X.                                                 00840003
+008500     05 RE-MONTHLY-REPAYMENT-AMOUNT PIC 9(7).9(2).                00850003
+008600     05 FILLER PIC X(47).                                         00860003
+008700***************OUTPUT DEFAULTER FILE STRUCTURE********************00870003
+008800 FD OUTDEFA                                                       00880003
+008900     RECORD CONTAINS 240 CHARACTERS                               00890003
+009000     BLOCK CONTAINS 2400 CHARACTERS                               00900003
+009100     RECORDING MODE IS F.                                         00910003
+009200 01 FS-DEFA.                                                      00920003
+009300     05 DE-REPORT-CREATION-DATE PIC X(10).                        00930003
+009400     05 FILLER                  PIC X.                            00940003
+009500     05 DE-APPLICANT-ID         PIC X(10).                        00950003
+009600     05 FILLER                  PIC X.                            00960003
+009700     05 DE-APPLICANT-NAME       PIC X(32).                        00970003
+009800     05 FILLER                  PIC X.                            00980003
+009900     05 DE-APPLICANT-ADDRESS    PIC X(80).                        00990003
+010000     05 FILLER                  PIC X.                            01000003
+010100     05 DE-CONTACT-NO           PIC X(10).                        01010003
+010200     05 FILLER                  PIC X.                            01020003
+010300     05 DE-LOAN-ID              PIC X(2).                         01030003
+010400     05 FILLER                  PIC X.                            01040003
+010500     05 DE-LOAN-TYPE            PIC X(10).                        01050003
+010600     05 FILLER                  PIC X.                            01060003
+010700     05 DE-BALANCE-AMOUNT       PIC  9(7).9(2).                   01070003
+010800     05 FILLER                  PIC X.                            01080003
+010900     05 DE-DUE-DATE             PIC X(10).                        01090003
+011000     05 FILLER                  PIC X.                            01100003
+011100     05 DE-MONTHLY-REPAYMENT-AMOUNT PIC 9(7).9(2).                01110003
+011200     05 FILLER                  PIC X.                            01120003
+011300     05 DE-TOTAL-AMOUNT         PIC 9(7).9(2).                    01130003
+011400     05 FILLER                  PIC X(36).                        01140003
+011500******************************************************************01150003
+011600 WORKING-STORAGE SECTION.                                         01160003
+011700     EXEC SQL                                                     01170003
+011800        INCLUDE SQLCA                                             01180003
+011900     END-EXEC.                                                    01190003
+012000     EXEC SQL                                                     01200003
+012100        INCLUDE APPDCL                                            01210003
+012200     END-EXEC.                                                    01220003
+012300     EXEC SQL                                                     01230003
+012400        INCLUDE LONDCL                                            01240003
+012500     END-EXEC.                                                    01250003
+012600*********************DECLARING CURSOR CUR2************************01260003
+012700     EXEC SQL                                                     01270003
+012800       DECLARE CUR2 CURSOR FOR                                    01280003
+012900       SELECT                                                     01290003
+013000       A.APPLICANT_ID,A.APPLICANT_NAME,A.DOOR_NO,                 01300003
+013100       A.STREET,A.CITY,A.STATE,A.PIN,A.CELL_PHONE_NO,             01310003
+013200       B.LOAN_ID,B.LOAN_TYPE,B.TOTAL_REPAYMENT_AMOUNT,            01320003
+013300       B.NEXT_REPAYMENT_DUE_DATE,B.MONTHLY_REPAYMENT_AMOUNT,      01330003
+013400          B.BALANCE_AMOUNT                                        01340003
+013500       FROM LOAN_TABLE B JOIN APPLICANT_TABLE A                   01350003
+013600       ON A.APPLICANT_ID = B.APPLICANT_ID                         01360003
+013700      END-EXEC.                                                   01370003
+013800 77 WS-TOTAL PIC 9(7)V9(2).                                       01380003
+013900 77 WS-SQLCODE PIC ZZ9-.                                          01390003
+014000 77 FS-INPPAYM PIC X(2).                                          01400003
+014100 77 FS-OUTREPO PIC X(2).                                          01410003
+014200 77 FS-OUTDEFA PIC X(2).                                          01420003
+014300 77 WS-DIFF-DATE PIC 9(3).                                        01430003
+014400 77 WS-REPAYMENT-DATE PIC 9(8).                                   01440003
+014500 77 WS-REPAYMENT-DATE-INIT PIC 9(7).                              01450003
+014600 77 WS-REPAYMENT-DATE-JULIAN PIC 9(7).                            01460003
+014700 77 WS-PAID-DATE PIC 9(8).                                        01470003
+014800 77 WS-PAID-DATE-INIT PIC 9(7).                                   01480003
+014900 77 WS-PAID-DATE-JULIAN PIC 9(7).                                 01490003
+015000 77 WS-PAID-DAY PIC 9(3).                                         01500003
+015100 77 WS-REPAYMENT-DAY PIC 9(3).                                    01510003
+015200 77 WS-TEMP1 PIC X(6).                                            01520003
+015300 77 WS-TEMP2 PIC X(6).                                            01530003
+015400***************************************************************** 01540003
+015500 01 WS-DB2-ERR-MSG.                                               01550003
+015600   05 WS-DB2-ERR-MSG-LEN  PIC S9(4) COMP  VALUE +560.             01560003
+015700   05 WS-DB2-ERR-MSG-TEXT PIC X(80)                               01570003
+015800      OCCURS 7 TIMES INDEXED BY WS-INX.                           01580003
+015900 01 WS-DB2-ERRMSG-LINE-LEN  PIC S9(9) COMP VALUE +80.             01590003
+016000 01 WS-USER-ABEND-CODE      PIC S9(4) COMP.                       01600003
+016100***************************************************************** 01610003
+016200 PROCEDURE DIVISION.                                              01620003
+016300 0000-MAIN-PARA.                                                  01630003
+016400     PERFORM 0001-OPEN-PARA THRU 0001-OPEN-PARA-EXIT.             01640003
+016500     PERFORM 0002-SQL-PARA THRU 0002-SQL-PARA-EXIT.               01650003
+016600     PERFORM 0003-READ-PARA THRU 0003-READ-PARA-EXIT              01660003
+016700       UNTIL FS-INPPAYM = '10'.                                   01670003
+016800     PERFORM 0009-CLOSE-PARA THRU 0009-CLOSE-PARA-EXIT.           01680003
+016900     STOP RUN.                                                    01690003
+017000*******************OPENING INPUT FILE**************************** 01700003
+017100 0001-OPEN-PARA.                                                  01710003
+017200     OPEN INPUT INPPAYM.                                          01720003
+017300     EVALUATE TRUE                                                01730003
+017400     WHEN FS-INPPAYM = '00'                                       01740003
+017500      DISPLAY 'INPUT PAYMENT FILE OPEN SUCCESS '                  01750003
+017600          FS-INPPAYM                                              01760003
+017700     WHEN OTHER                                                   01770003
+017800      DISPLAY 'INPUT PAYMENT FILE OPEN FAILED ' FS-INPPAYM        01780003
+017900      MOVE 12 TO RETURN-CODE                                      01790003
+018000     END-EVALUATE.                                                01800003
+018100*******************OPENING OUTPUT REPORT FILE******************** 01810003
+018200     OPEN OUTPUT OUTREPO.                                         01820003
+018300     EVALUATE TRUE                                                01830003
+018400     WHEN FS-OUTREPO = '00'                                       01840003
+018500      DISPLAY 'OUTPUT REPORT FILE OPEN SUCCESS ' FS-OUTREPO       01850003
+018600     WHEN OTHER                                                   01860003
+018700      DISPLAY 'OUTPUT REPORT FILE OPEN FAILED ' FS-OUTREPO        01870003
+018800      MOVE 12 TO RETURN-CODE                                      01880003
+018900     END-EVALUATE.                                                01890003
+019000******************OPENING OUTPUT DEFAULTER FILE*******************01900003
+019100     OPEN OUTPUT OUTDEFA.                                         01910003
+019200     EVALUATE TRUE                                                01920003
+019300     WHEN FS-OUTDEFA = '00'                                       01930003
+019400      DISPLAY 'OUTPUT DEFAULT FILE OPEN SUCCESS ' FS-OUTDEFA      01940003
+019500     WHEN OTHER                                                   01950003
+019600      DISPLAY 'OUTPUT DEFAULT FILE OPEN FAILED ' FS-OUTDEFA       01960003
+019700      MOVE 12 TO RETURN-CODE                                      01970003
+019800     END-EVALUATE.                                                01980003
+019900******************************************************************01990003
+020000 0001-OPEN-PARA-EXIT.                                             02000003
+020100     EXIT.                                                        02010003
+020200*************************OPENING CURSOR CUR2**********************02020003
+020300 0002-SQL-PARA.                                                   02030003
+020400     MOVE SQLCODE TO WS-SQLCODE.                                  02040003
+020500     EVALUATE TRUE                                                02050003
+020600     WHEN SQLCODE = 00                                            02060003
+020700        EXEC SQL                                                  02070003
+020800          OPEN CUR2                                               02080003
+020900        END-EXEC                                                  02090003
+021000     WHEN OTHER                                                   02100003
+021100        DISPLAY 'ERROR IN DECLARING THE CURSOR ' WS-SQLCODE       02110003
+021110        MOVE 1 TO WS-USER-ABEND-CODE                              02120003
+021200        PERFORM 9999-ERROR-PARA THRU 9999-EXIT                    02130003
+021400     END-EVALUATE.                                                02140003
+021500******************************************************************02150003
+021600 0002-SQL-PARA-EXIT.                                              02160003
+021700     EXIT.                                                        02170003
+021800******************************************************************02180003
+021900 9999-ERROR-PARA.                                                 02190003
+022000      CALL 'DSNTIAR' USING  SQLCA , WS-DB2-ERR-MSG ,              02200003
+022100                                    WS-DB2-ERRMSG-LINE-LEN.       02210003
+022200       PERFORM VARYING WS-INX FROM 1 BY 1 UNTIL WS-INX > 7        02220003
+022300       DISPLAY  WS-DB2-ERR-MSG-TEXT(WS-INX)                       02230003
+022400       END-PERFORM.                                               02240003
+022500       CALL 'ILBOABN0' USING WS-USER-ABEND-CODE.                  02250003
+022600******************************************************************02260003
+022700 9999-EXIT.                                                       02270003
+022800     EXIT.                                                        02280003
+022900************************READING INPUT FILE************************02290003
+023000 0003-READ-PARA.                                                  02300003
+023100     READ INPPAYM.                                                02310003
+023200     EVALUATE TRUE                                                02320003
+023300     WHEN FS-INPPAYM = '00'                                       02330003
+023400      DISPLAY 'READING PAYMENT FILE ' FS-INPPAYM                  02340003
+023500      PERFORM 0004-INITIALIZE-PARA THRU                           02350003
+023600         0004-INITIALIZE-PARA-EXIT                                02360003
+023700      PERFORM 0041-FETCH-PARA THRU 0041-FETCH-PARA-EXIT           02370003
+023800     WHEN FS-INPPAYM = '10'                                       02380003
+023900       DISPLAY 'END OF FILE OF PAYMENT FILE'                      02390003
+024000     WHEN OTHER                                                   02400003
+024100      DISPLAY 'READING FAILED OF PAYMENT FILE ' FS-INPPAYM        02410003
+024200      MOVE 12 TO RETURN-CODE                                      02420003
+024300     END-EVALUATE.                                                02430003
+024400******************************************************************02440003
+024500 0003-READ-PARA-EXIT.                                             02450003
+024600     EXIT.                                                        02460003
+024700*************INITIALIZING VARCHAR DATA TYPES**********************02470003
+024800 0004-INITIALIZE-PARA.                                            02480003
+024900      INITIALIZE AP-APPLICANT-NAME.                               02490003
+025000      MOVE SPACES TO AP-APPLICANT-NAME-TEXT.                      02500003
+025100******************************************************************02510003
+025200 0004-INITIALIZE-PARA-EXIT.                                       02520003
+025300     EXIT.                                                        02530003
+025400*****************FETCHING DETAILS FROM TABLES*********************02540003
+025500 0041-FETCH-PARA.                                                 02550003
+025600     EXEC SQL                                                     02560003
+025700       FETCH CUR2 INTO                                            02570003
+025800          :AP-APPLICANT-ID,                                       02580003
+025900          :AP-APPLICANT-NAME,                                     02590003
+026000          :AP-DOOR-NO,                                            02600003
+026100          :AP-STREET,                                             02610003
+026200          :AP-CITY,                                               02620003
+026300          :AP-STATE,                                              02630003
+026400          :AP-PIN,                                                02640003
+026500          :AP-CELL-PHONE-NO,                                      02650003
+026600          :LO-LOAN-ID,                                            02660003
+026700          :LO-LOAN-TYPE,                                          02670003
+026800          :LO-TOTAL-REPAYMENT-AMOUNT,                             02680003
+026900          :LO-NEXT-REPAYMENT-DUE-DATE,                            02690003
+027000          :LO-MONTHLY-REPAYMENT-AMOUNT,                           02700003
+027100          :LO-BALANCE-AMOUNT                                      02710003
+027200     END-EXEC.                                                    02720003
+027300      PERFORM 0005-VALIDATION-PARA THRU                           02730003
+027400         0005-VALIDATION-PARA-EXIT.                               02740003
+027500******************************************************************02750003
+027600 0041-FETCH-PARA-EXIT.                                            02760003
+027700     EXIT.                                                        02770003
+027800******************VALIDATION OF APPLICANT ID**********************02780003
+027900 0005-VALIDATION-PARA.                                            02790003
+028000     IF AP-APPLICANT-ID = PY-APPLICANT-ID                         02800003
+028100       PERFORM 0006-CALC-PARA THRU 0006-CALC-PARA-EXIT            02810003
+028200     ELSE                                                         02820003
+028300      DISPLAY AP-APPLICANT-ID 'NOT EQUAL TO' PY-APPLICANT-ID      02830003
+028400      DISPLAY 'RECORDS ARE NOT MATCHING '                         02840003
+028500      PERFORM 0041-FETCH-PARA THRU 0041-FETCH-PARA-EXIT           02850003
+028600     END-IF.                                                      02860003
+028700******************************************************************02870003
+028800 0005-VALIDATION-PARA-EXIT.                                       02880003
+028900     EXIT.                                                        02890003
+029000*****************CALCULATING DIFFERENCE IN DATES******************02900003
+029100 0006-CALC-PARA.                                                  02910003
+029200     MOVE PY-AMOUNT-PAID-DATE(1:4) TO WS-PAID-DATE(1:4).          02920003
+029300     MOVE PY-AMOUNT-PAID-DATE(6:2) TO WS-PAID-DATE(5:2).          02930003
+029400     MOVE PY-AMOUNT-PAID-DATE(9:2) TO WS-PAID-DATE(7:2).          02940003
+029500     DISPLAY WS-PAID-DATE.                                        02950003
+029600     MOVE LO-NEXT-REPAYMENT-DUE-DATE(1:4)                         02960003
+029700       TO WS-REPAYMENT-DATE(1:4).                                 02970003
+029800     MOVE LO-NEXT-REPAYMENT-DUE-DATE(6:2)                         02980003
+029900       TO WS-REPAYMENT-DATE(5:2).                                 02990003
+030000     MOVE LO-NEXT-REPAYMENT-DUE-DATE(9:2)                         03000003
+030100       TO WS-REPAYMENT-DATE(7:2).                                 03010003
+030200     COMPUTE WS-PAID-DATE-INIT =                                  03020003
+030300      FUNCTION INTEGER-OF-DATE(WS-PAID-DATE).                     03030003
+030400     COMPUTE WS-PAID-DATE-JULIAN =                                03040003
+030500      FUNCTION DAY-OF-INTEGER(WS-PAID-DATE-INIT).                 03050003
+030600     COMPUTE WS-REPAYMENT-DATE-INIT =                             03060003
+030700      FUNCTION INTEGER-OF-DATE(WS-REPAYMENT-DATE).                03070003
+030800     COMPUTE WS-REPAYMENT-DATE-JULIAN =                           03080003
+030900      FUNCTION DAY-OF-INTEGER(WS-REPAYMENT-DATE-INIT).            03090003
+031000      DISPLAY WS-PAID-DATE-INIT 'PAID DATE'                       03100003
+031100     MOVE WS-PAID-DATE-JULIAN(5:3) TO WS-PAID-DAY.                03110003
+031200     MOVE WS-REPAYMENT-DATE-JULIAN(5:3) TO WS-REPAYMENT-DAY.      03120003
+031300     DISPLAY WS-PAID-DAY ' = PAID DATE IN JULIAN'.                03130003
+031400     DISPLAY WS-REPAYMENT-DAY ' = REPAYMENT DATE IN JULIAN'.      03140003
+031500     COMPUTE WS-DIFF-DATE = WS-PAID-DAY - WS-REPAYMENT-DAY.       03150003
+031600     EVALUATE TRUE                                                03160003
+031700     WHEN WS-DIFF-DATE <= 30                                      03170003
+031800      IF  WS-PAID-DAY > WS-REPAYMENT-DAY                          03180003
+031900        PERFORM 0007-CSV-REP-WRITE-PARA THRU                      03190003
+032000         0007-CSV-REP-WRITE-PARA-EXIT                             03200003
+032100        ELSE                                                      03210003
+032200         DISPLAY 'THEY ARE EARLY PAYERS'                          03220003
+032300        END-IF                                                    03230003
+032400     WHEN WS-DIFF-DATE > 30                                       03240003
+032500        IF  WS-PAID-DAY > WS-REPAYMENT-DAY                        03250003
+032600         COMPUTE WS-TOTAL =                                       03260003
+032700         LO-TOTAL-REPAYMENT-AMOUNT - LO-BALANCE-AMOUNT            03270003
+032800         PERFORM 0008-DEFAULTER-WRITE-PARA THRU                   03280003
+032900          0008-DEFAULTER-WRITE-PARA-EXIT                          03290003
+033000        ELSE                                                      03300003
+033100          DISPLAY 'THEY ARE EARLY PAYERS'                         03310003
+033200        END-IF                                                    03320003
+033300     WHEN OTHER                                                   03330003
+033400      DISPLAY 'INCOMPATIBLE VALUE '                               03340003
+033500      MOVE 12 TO RETURN-CODE                                      03350003
+033600     END-EVALUATE.                                                03360003
+033700******************************************************************03370003
+033800 0006-CALC-PARA-EXIT.                                             03380003
+033900     EXIT.                                                        03390003
+034000***************WRITING RECORDS IN REPORT FILE AS CSV**************03400003
+034100 0007-CSV-REP-WRITE-PARA.                                         03410003
+034200            MOVE FUNCTION CURRENT-DATE(1:4) TO                    03420003
+034300                    RE-REPORT-CREATION-DATE(1:4).                 03430003
+034400            MOVE '-' TO RE-REPORT-CREATION-DATE(5:1).             03440003
+034500            MOVE FUNCTION CURRENT-DATE(5:2) TO                    03450003
+034600                    RE-REPORT-CREATION-DATE(6:2) .                03460003
+034700            MOVE '-' TO RE-REPORT-CREATION-DATE(8:1).             03470003
+034800            MOVE FUNCTION CURRENT-DATE(7:2) TO                    03480003
+034900                    RE-REPORT-CREATION-DATE(9:2).                 03490003
+035000            MOVE AP-PIN TO WS-TEMP1.                              03500003
+035100            MOVE AP-APPLICANT-ID TO RE-APPLICANT-ID.              03510003
+035200            MOVE AP-APPLICANT-NAME-TEXT TO RE-APPLICANT-NAME.     03520003
+035300            STRING AP-DOOR-NO DELIMITED BY '  ' ','               03530003
+035400                   AP-STREET DELIMITED BY '  ' ','                03540003
+035500                   AP-CITY   DELIMITED BY '  ' ','                03550003
+035600                   AP-STATE  DELIMITED BY '  ' ','                03560003
+035700                   WS-TEMP1  DELIMITED BY SIZE                    03570003
+035800                   INTO RE-APPLICANT-ADDRESS(1:80).               03580003
+035900              MOVE AP-CELL-PHONE-NO TO RE-CONTACT-NO.             03590003
+036000              MOVE LO-LOAN-ID TO RE-LOAN-ID.                      03600003
+036100              MOVE LO-LOAN-TYPE TO RE-LOAN-TYPE.                  03610003
+036200              MOVE LO-BALANCE-AMOUNT TO RE-BALANCE-AMOUNT.        03620003
+036300              MOVE LO-NEXT-REPAYMENT-DUE-DATE TO RE-DUE-DATE.     03630003
+036400              MOVE LO-MONTHLY-REPAYMENT-AMOUNT TO                 03640003
+036500                   RE-MONTHLY-REPAYMENT-AMOUNT.                   03650003
+036600              MOVE ',' TO F1.                                     03660003
+036700              MOVE ',' TO F2.                                     03670003
+036800              MOVE ',' TO F3.                                     03680003
+036900              MOVE ',' TO F4.                                     03690003
+037000              MOVE ',' TO F5.                                     03700003
+037100              MOVE ',' TO F6.                                     03710003
+037200              MOVE ',' TO F7.                                     03720003
+037300              MOVE ',' TO F8.                                     03730003
+037400              MOVE ',' TO F9.                                     03740003
+037500              WRITE FS-REPO.                                      03750003
+037600        EVALUATE TRUE                                             03760003
+037700        WHEN FS-OUTREPO = '00'                                    03770003
+037800            DISPLAY 'REPORT WRITE IS SUCCESS ' FS-OUTREPO         03780003
+037900        WHEN OTHER                                                03790003
+038000           DISPLAY 'REPORT WRITE IS FAILED ' FS-OUTREPO           03800003
+038100           MOVE 12 TO RETURN-CODE                                 03810003
+038200        END-EVALUATE.                                             03820003
+038300******************************************************************03830003
+038400 0007-CSV-REP-WRITE-PARA-EXIT.                                    03840003
+038500     EXIT.                                                        03850003
+038600***************WRITING RECORDS IN DEFAULTERS FILE*****************03860003
+038700 0008-DEFAULTER-WRITE-PARA.                                       03870003
+038800     MOVE FUNCTION CURRENT-DATE(1:4) TO                           03880003
+038900          DE-REPORT-CREATION-DATE(1:4).                           03890003
+039000     MOVE '-' TO DE-REPORT-CREATION-DATE(5:1).                    03900003
+039100     MOVE FUNCTION CURRENT-DATE(5:2) TO                           03910003
+039200          DE-REPORT-CREATION-DATE(6:2).                           03920003
+039300     MOVE '-' TO DE-REPORT-CREATION-DATE(8:1).                    03930003
+039400     MOVE FUNCTION CURRENT-DATE(7:2) TO                           03940003
+039500              DE-REPORT-CREATION-DATE(9:2).                       03950003
+039600     MOVE AP-PIN TO WS-TEMP2.                                     03960003
+039700     MOVE AP-APPLICANT-ID TO DE-APPLICANT-ID.                     03970003
+039800     MOVE AP-APPLICANT-NAME-TEXT TO DE-APPLICANT-NAME.            03980003
+039900     STRING AP-DOOR-NO DELIMITED BY '  ' ','                      03990003
+040000            AP-STREET DELIMITED BY '  ' ','                       04000003
+040100            AP-CITY   DELIMITED BY '  ' ','                       04010003
+040200            AP-STATE  DELIMITED BY '  ' ','                       04020003
+040300            WS-TEMP2  DELIMITED BY SIZE                           04030003
+040400       INTO DE-APPLICANT-ADDRESS(1:80).                           04040003
+040500       MOVE AP-CELL-PHONE-NO TO DE-CONTACT-NO.                    04050003
+040600       MOVE LO-LOAN-ID TO DE-LOAN-ID.                             04060003
+040700       MOVE LO-LOAN-TYPE TO DE-LOAN-TYPE.                         04070003
+040800       MOVE LO-BALANCE-AMOUNT TO DE-BALANCE-AMOUNT.               04080003
+040900       MOVE LO-NEXT-REPAYMENT-DUE-DATE TO DE-DUE-DATE.            04090003
+041000       MOVE LO-MONTHLY-REPAYMENT-AMOUNT TO                        04100003
+041100            DE-MONTHLY-REPAYMENT-AMOUNT.                          04110003
+041200       MOVE WS-TOTAL TO DE-TOTAL-AMOUNT.                          04120003
+041300       WRITE FS-DEFA.                                             04130003
+041400       EVALUATE TRUE                                              04140003
+041500       WHEN FS-OUTDEFA = '00'                                     04150003
+041600         DISPLAY 'DEFAULTER FILE WRITE IS SUCCESS ' FS-OUTDEFA    04160003
+041700       WHEN OTHER                                                 04170003
+041800         DISPLAY 'DEFAULTER FILE  WRITE IS FAILED ' FS-OUTDEFA    04180003
+041900         MOVE 12 TO RETURN-CODE                                   04190003
+042000       END-EVALUATE.                                              04200003
+042100******************************************************************04210003
+042200 0008-DEFAULTER-WRITE-PARA-EXIT.                                  04220003
+042300     EXIT.                                                        04230003
+042400******************************************************************04240003
+042500 0009-CLOSE-PARA.                                                 04250003
+042600     EVALUATE TRUE                                                04260003
+042700     WHEN FS-INPPAYM = '10'                                       04270003
+042800      CLOSE INPPAYM                                               04280003
+042900      DISPLAY 'INPUT FILE IS CLOSED'                              04290003
+043000     WHEN OTHER                                                   04300003
+043100      DISPLAY 'INPUT FILE IS NOT CLOSED ' FS-INPPAYM              04310003
+043200      MOVE 12 TO RETURN-CODE                                      04320003
+043300     END-EVALUATE.                                                04330003
+043400     EVALUATE TRUE                                                04340003
+043500     WHEN FS-OUTREPO = '00'                                       04350003
+043600      CLOSE OUTREPO                                               04360003
+043700      DISPLAY 'OUTPUT DEFAULT FILE IS CLOSED'                     04370003
+043800     WHEN OTHER                                                   04380003
+043900      DISPLAY 'OUTPUT DEFAULT FILE IS NOT CLOSED' FS-OUTREPO      04390003
+044000      MOVE 12 TO RETURN-CODE                                      04400003
+044100     END-EVALUATE.                                                04410003
+044200     EVALUATE TRUE                                                04420003
+044300     WHEN FS-OUTDEFA = '00'                                       04430003
+044400      CLOSE OUTDEFA                                               04440003
+044500      DISPLAY 'OUTPUT DEFAULT FILE IS CLOSED'                     04450003
+044600     WHEN OTHER                                                   04460003
+044700      DISPLAY 'OUTPUT DEAFULT FILE IS NOT CLOSED' FS-OUTDEFA      04470003
+044800      MOVE 12 TO RETURN-CODE                                      04480003
+044900     END-EVALUATE.                                                04490003
+045000     EVALUATE TRUE                                                04500003
+045100     WHEN SQLCODE = 00                                            04510003
+045200       EXEC SQL                                                   04520003
+045300         CLOSE CUR2                                               04530003
+045400       END-EXEC                                                   04540003
+045500      DISPLAY 'CUR2 IS CLOSED'                                    04550003
+045600     WHEN OTHER                                                   04560003
+045700      DISPLAY 'CUR2 IS NOT CLOSED'                                04570003
+045800      DISPLAY WS-SQLCODE 'STATUS OF CURSOR CUR2'                  04580003
+045900      MOVE 12 TO RETURN-CODE                                      04590003
+046000     END-EVALUATE.                                                04600003
+046100******************************************************************04610003
+046200 0009-CLOSE-PARA-EXIT.                                            04620003
+046300      EXIT.                                                       04630003
+046400*************************END OF PROGRAM***************************04640003
+

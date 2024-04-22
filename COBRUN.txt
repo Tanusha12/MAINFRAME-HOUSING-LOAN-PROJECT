@@ -1,0 +1,8 @@
+//TECN221R JOB NOTIFY=&SYSUID                                           00010003
+//STEP01 EXEC PGM=REPORT2                         --> MEMBER NAME       00020001
+//STEPLIB DD DSN=TECN221.COBOL.LOADLIB(REPORT2),DISP=SHR                00030002
+//DDDEFA DD DSN=TECN221.PROJECT.DEFAULT.PS,DISP=SHR                     00062000
+//DDREPO DD DSN=TECN221.PROJECT.DEFUALT.REPORT,DISP=SHR                 00062105
+//SYSPRINT DD SYSOUT=*                                                  00063001
+//SYSOUT DD SYSOUT=*                                                    00064001
+

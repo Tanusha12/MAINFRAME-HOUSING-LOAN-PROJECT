@@ -1,0 +1,22 @@
+//TECN221R JOB ,,NOTIFY=&SYSUID,CLASS=A,MSGLEVEL=(1,1),MSGCLASS=H,      00010003
+//         LINES=(1,CANCEL),PRTY=15                                     00020000
+//JOBLIB   DD  DISP=SHR,                                                00030000
+//            DSN=DSN810.SDSNEXIT                                       00040000
+//         DD DISP=SHR,                                                 00050000
+//            DSN=DSN810.SDSNLOAD                                       00060000
+//         DD DISP=SHR,                                                 00070000
+//            DSN=CEE.SCEERUN                                           00080000
+//PH02CS04 EXEC PGM=IKJEFT01,DYNAMNBR=20,COND=(4,LT)                    00090000
+//SYSTSPRT DD SYSOUT=*                                                  00100000
+//SYSPRINT DD SYSOUT=*                                                  00110000
+//SYSOUT   DD SYSOUT=*                                                  00120000
+//SYSIN    DD DUMMY                                                     00130000
+//DDPAY   DD  DSN=TECN221.PROJECT.PAYFILE.PS,DISP=SHR                   00131001
+//DDREPO  DD  DSN=TECN221.PROJECT.REPORT.PS,DISP=SHR                    00132001
+//DDDEFA  DD  DSN=TECN221.PROJECT.DEFAULT.PS,DISP=SHR                   00133001
+//SYSTSIN  DD *                                                         00140000
+  DSN SYSTEM(DB9G)                                                      00150000
+  RUN PROGRAM(COBPRO) PLAN(TECN221P) LIB('TECN221.COBOL.LOADLIB')       00160002
+  END                                                                   00170000
+/*                                                                      00180000
+

@@ -1,0 +1,19 @@
+//TECN221B JOB ,,NOTIFY=&SYSUID,CLASS=A,MSGLEVEL=(1,1),MSGCLASS=H       00010002
+//JOBLIB   DD  DISP=SHR,                                                00020000
+//            DSN=DSN910.DB9G.SDSNEXIT                                  00030000
+//         DD DISP=SHR,                                                 00040000
+//            DSN=DSN910.SDSNLOAD                                       00050000
+//BIND     EXEC PGM=IKJEFT01,DYNAMNBR=20                                00060000
+//DBRMLIB  DD DISP=SHR,                                                 00070000
+//         DSN=TECN221.DB2.DBRM            --> DBRM LIBRARY             00080000
+//SYSTSPRT DD SYSOUT=*                                                  00090000
+//SYSPRINT DD SYSOUT=*                                                  00100000
+//SYSUMUMP DD SYSOUT=*                                                  00110000
+//SYSOUT   DD SYSOUT=*                                                  00120000
+//REPORT   DD SYSOUT=*                                                  00130000
+//SYSTSIN  DD *                                                         00140000
+  DSN SYSTEM(DB9G)                                                      00150000
+  BIND PLAN(TECN221P) MEMBER(COBPRO) ISOLATION(CS) ACTION(REP) -        00160001
+  ENCODING(EBCDIC)                                                      00170000
+//*                                                                     00180000
+
